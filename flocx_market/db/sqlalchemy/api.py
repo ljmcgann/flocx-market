@@ -1,12 +1,14 @@
 from oslo_db.sqlalchemy import session as db_session
 from oslo_utils import uuidutils
-
+from oslo_log import log as logging
 
 import flocx_market.conf
 from flocx_market.db.sqlalchemy import models
 from flocx_market.common import exception
 
 CONF = flocx_market.conf.CONF
+LOG = logging.getLogger(__name__)
+
 _engine_facade = None
 
 
@@ -42,6 +44,9 @@ def drop_db():
 
 def offer_get(marketplace_offer_id, context):
 
+    LOG.info("Getting offers " + marketplace_offer_id +
+             " from database", context=context)
+
     offer_ref = get_session().query(models.Offer).filter_by(
             marketplace_offer_id=marketplace_offer_id).one_or_none()
 
@@ -53,15 +58,26 @@ def offer_get(marketplace_offer_id, context):
 
 
 def offer_get_all(context):
+    LOG.info("Getting all offers from database", context=context)
     return get_session().query(models.Offer).all()
 
 
 def offer_get_all_by_project_id(context):
+    LOG.info("Getting all offers by project_id " + context.project_id +
+             " from database", context=context)
+
     return get_session().query(models.Offer).filter_by(
         project_id=context.project_id).all()
 
 
 def offer_get_all_by_server_id(context, server_id, status=None):
+    if status is not None:
+        LOG.info("Getting all offers by server_id " + server_id +
+                 " by status " + status + " from database", context=context)
+    else:
+        LOG.info("Getting all offers by server_id " + server_id +
+                 " from database", context=context)
+
     query = get_session().query(models.Offer).filter_by(
         server_id=server_id)
     if status is not None:
@@ -70,6 +86,8 @@ def offer_get_all_by_server_id(context, server_id, status=None):
 
 
 def offer_get_all_unexpired(context):
+    LOG.info("Getting all unexpired offers from database", context=context)
+
     if context.is_admin:
         return get_session().query(models.Offer).filter(
             models.Offer.status != 'expired').all()
@@ -80,6 +98,9 @@ def offer_get_all_unexpired(context):
 
 
 def offer_get_all_by_status(status, context):
+    LOG.info("Getting all offers by status " + status +
+             " from database", context=context)
+
     if context.is_admin:
         return get_session().query(models.Offer)\
                             .filter_by(status=status).all()
@@ -89,6 +110,8 @@ def offer_get_all_by_status(status, context):
 
 
 def offer_create(values, context):
+
+    LOG.info("Attempting to create offer in database", context=context)
 
     query = get_session().query(models.Offer).filter(
         models.Offer.server_id == values['server_id'],
@@ -115,6 +138,9 @@ def offer_create(values, context):
 
 def offer_update(marketplace_offer_id, values, context):
 
+    LOG.info("Attempting to update offer " + marketplace_offer_id +
+             " in database", context=context)
+
     if context.is_admin:
         offer_ref = get_session().query(models.Offer).filter_by(
                     marketplace_offer_id=marketplace_offer_id).one_or_none()
@@ -137,6 +163,10 @@ def offer_update(marketplace_offer_id, values, context):
 
 
 def offer_destroy(marketplace_offer_id, context):
+
+    LOG.info("Attempting to destroy offer " + marketplace_offer_id +
+             " in database", context=context)
+
     if context.is_admin:
         offer_ref = get_session().query(models.Offer).filter_by(
                     marketplace_offer_id=marketplace_offer_id).one_or_none()
@@ -163,6 +193,8 @@ def offer_destroy(marketplace_offer_id, context):
 
 
 def bid_get(marketplace_bid_id, context):
+    LOG.info("Getting bid " + marketplace_bid_id +
+             " from database", context=context)
 
     bid_ref = get_session().query(models.Bid).filter_by(
         marketplace_bid_id=marketplace_bid_id).one_or_none()
@@ -175,6 +207,8 @@ def bid_get(marketplace_bid_id, context):
 
 
 def bid_get_all(context):
+    LOG.info("Getting all bids from database", context=context)
+
     return get_session().query(models.Bid).all()
 
 
